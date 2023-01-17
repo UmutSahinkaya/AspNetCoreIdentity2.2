@@ -29,7 +29,22 @@ namespace Identity
             {
                 opts.UseSqlServer(configuration["ConnectionStrings:DefaultConnectionString"]);
             });
-            services.AddIdentity<AppUser, AppRole>(opts =>
+            // ------------------------------Cookie Oluşturma Kısmı-------
+            CookieBuilder cookieBuilder = new CookieBuilder();
+            cookieBuilder.Name = "MyBlog";
+            cookieBuilder.HttpOnly = false;
+            cookieBuilder.Expiration = System.TimeSpan.FromDays(60);
+            cookieBuilder.SameSite = SameSiteMode.Lax;//altdomainler de tekrardan cookie oluştrmasın diye lax dedim
+            cookieBuilder.SecurePolicy = CookieSecurePolicy.SameAsRequest;//Http-Https isteklerine cevap verir.
+
+            services.ConfigureApplicationCookie(opts =>
+            {
+                opts.LoginPath = new PathString("/Home/Login");
+                opts.Cookie = cookieBuilder;
+                opts.SlidingExpiration = true;
+            });
+             // -------------------------Cookie Oluşturma Kısmı Bitti-----------//
+             services.AddIdentity<AppUser, AppRole>(opts =>
             {
                 opts.User.RequireUniqueEmail = true;
                 opts.User.AllowedUserNameCharacters =
@@ -39,7 +54,7 @@ namespace Identity
                 opts.Password.RequireLowercase = false;
                 opts.Password.RequireUppercase = false;
                 opts.Password.RequireDigit = false;
-            }).AddUserValidator<CustomUserValidator>().AddPasswordValidator<CustomPasswordValidator>().AddEntityFrameworkStores<AppIdentityDbContext>();
+            }).AddErrorDescriber<CustomIdentityErrorDescriber>().AddUserValidator<CustomUserValidator>().AddPasswordValidator<CustomPasswordValidator>().AddEntityFrameworkStores<AppIdentityDbContext>();
             services.AddMvc();
         }
 
