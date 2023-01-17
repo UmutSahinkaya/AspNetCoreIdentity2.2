@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Identity.CustomValidation;
 
 namespace Identity
 {
@@ -30,14 +31,15 @@ namespace Identity
             });
             services.AddIdentity<AppUser, AppRole>(opts =>
             {
+                opts.User.RequireUniqueEmail = true;
+                opts.User.AllowedUserNameCharacters =
+                    "abcçdefghıijklmnopqrsştuüvwxyzABCÇDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
                 opts.Password.RequiredLength = 4;//çok şifre giricem 4 karakter olsun
                 opts.Password.RequireNonAlphanumeric = false;
                 opts.Password.RequireLowercase = false;
                 opts.Password.RequireUppercase = false;
                 opts.Password.RequireDigit = false;
-            }).AddEntityFrameworkStores<AppIdentityDbContext>();
-
-
+            }).AddUserValidator<CustomUserValidator>().AddPasswordValidator<CustomPasswordValidator>().AddEntityFrameworkStores<AppIdentityDbContext>();
             services.AddMvc();
         }
 
