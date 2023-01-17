@@ -29,22 +29,8 @@ namespace Identity
             {
                 opts.UseSqlServer(configuration["ConnectionStrings:DefaultConnectionString"]);
             });
-            // ------------------------------Cookie Oluşturma Kısmı-------
-            CookieBuilder cookieBuilder = new CookieBuilder();
-            cookieBuilder.Name = "MyBlog";
-            cookieBuilder.HttpOnly = false;
-            cookieBuilder.Expiration = System.TimeSpan.FromDays(60);
-            cookieBuilder.SameSite = SameSiteMode.Lax;//altdomainler de tekrardan cookie oluştrmasın diye lax dedim
-            cookieBuilder.SecurePolicy = CookieSecurePolicy.SameAsRequest;//Http-Https isteklerine cevap verir.
 
-            services.ConfigureApplicationCookie(opts =>
-            {
-                opts.LoginPath = new PathString("/Home/Login");
-                opts.Cookie = cookieBuilder;
-                opts.SlidingExpiration = true;
-            });
-             // -------------------------Cookie Oluşturma Kısmı Bitti-----------//
-             services.AddIdentity<AppUser, AppRole>(opts =>
+            services.AddIdentity<AppUser, AppRole>(opts =>
             {
                 opts.User.RequireUniqueEmail = true;
                 opts.User.AllowedUserNameCharacters =
@@ -55,6 +41,21 @@ namespace Identity
                 opts.Password.RequireUppercase = false;
                 opts.Password.RequireDigit = false;
             }).AddErrorDescriber<CustomIdentityErrorDescriber>().AddUserValidator<CustomUserValidator>().AddPasswordValidator<CustomPasswordValidator>().AddEntityFrameworkStores<AppIdentityDbContext>();
+            // ------------------------------Cookie Oluşturma Kısmı---------------//
+            CookieBuilder cookieBuilder = new CookieBuilder();
+            cookieBuilder.Name = "MyBlog";
+            cookieBuilder.HttpOnly = false;
+            cookieBuilder.SameSite = SameSiteMode.Lax;//altdomainler de tekrardan cookie oluştrmasın diye lax dedim
+            cookieBuilder.SecurePolicy = CookieSecurePolicy.SameAsRequest;//Http-Https isteklerine cevap verir.
+
+            services.ConfigureApplicationCookie(opts =>
+            {
+                opts.LoginPath = new PathString("/Home/Login");
+                opts.Cookie = cookieBuilder;
+                opts.SlidingExpiration = true;
+                opts.ExpireTimeSpan = System.TimeSpan.FromDays(60);
+            });
+            // -------------------------Cookie Oluşturma Kısmı Bitti-------------//
             services.AddMvc();
         }
 
@@ -64,9 +65,8 @@ namespace Identity
             app.UseDeveloperExceptionPage();
             app.UseStatusCodePages();
             app.UseStaticFiles();
-
-            app.UseMvcWithDefaultRoute();
             app.UseAuthentication();
+            app.UseMvcWithDefaultRoute();
         }
     }
 }
